@@ -95,6 +95,7 @@ UNINSTALL_LIB =	rm -f $(LIBDIR)/$(PLUGIN_FULLNAME); \
 # Android NDK setup
 HOST = arm-linux-androideabi
 NDK_BASE ?= /opt/android-ndk
+TOOLCHAIN_ARCHITECTURE ?= x86
 NDK_PLATFORM_LEVEL ?= 4
 NDK_ABI=arm
 NDK_SYSROOT=$(NDK_BASE)/platforms/android-$(NDK_PLATFORM_LEVEL)/arch-$(NDK_ABI)
@@ -102,7 +103,7 @@ NDK_UNAME=$(shell uname -s | tr '[A-Z]' '[a-z]')
 # if you are using NDK older than r8, you must use 4.4.3:
 #NDK_COMPILER_VERSION=4.4.3
 NDK_COMPILER_VERSION=4.6
-NDK_TOOLCHAIN=$(NDK_BASE)/toolchains/$(NDK_ABI)-linux-androideabi-$(NDK_COMPILER_VERSION)/prebuilt/$(NDK_UNAME)-x86
+NDK_TOOLCHAIN=$(NDK_BASE)/toolchains/$(NDK_ABI)-linux-androideabi-$(NDK_COMPILER_VERSION)/prebuilt/$(NDK_UNAME)-$(TOOLCHAIN_ARCHITECTURE)
 CROSS_COMPILE = $(NDK_TOOLCHAIN)/bin/$(HOST)-
 
 CC = $(CROSS_COMPILE)gcc --sysroot="$(NDK_SYSROOT)"
