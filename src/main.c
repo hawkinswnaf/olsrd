@@ -61,6 +61,11 @@
 #include "gateway.h"
 #include "olsr_niit.h"
 
+#ifdef JNI
+#include <jni.h>
+#include <android/log.h>
+#endif
+
 #ifdef __linux__
 #include <linux/types.h>
 #include <linux/rtnetlink.h>
@@ -307,7 +312,25 @@ static void initRandom(void) {
  * Main entrypoint
  */
 
+#ifdef JNI
+JNIEXPORT jint JNICALL Java_net_commotionwireless_olsrd_Olsrd_main(JNIEnv *env, jobject this, jobjectArray args) {
+  int argc = 0;
+  char **argv = NULL;
+  int stdout_pipe[2], stderr_pipe[2];
+  jsize jni_args_len;
+  jclass FileInputStreamClass;
+  jclass OlsrdClass;
+  jclass FileDescriptorClass;
+  jobject stdout_file_descriptor, stderr_file_descriptor;
+  jobject stdout_file_stream, stderr_file_stream;
+  jmethodID FileDescriptor_init, FileInputStream_init;
+  jfieldID FileDescriptor_field_fd, Olsrd_field_inputstream, Olsrd_field_errorstream;
+  jfieldID Olsrd_field_locker, Olsrd_field_streamsavailable;
+  jmethodID Olsrd_method_notify;
+  jobject Olsrd_object_locker;
+#else
 int main(int argc, char *argv[]) {
+#endif
   struct if_config_options *default_ifcnf;
   char conf_file_name[FILENAME_MAX];
   struct ipaddr_str buf;
@@ -330,6 +353,76 @@ int main(int argc, char *argv[]) {
   assert(sizeof(int8_t) == 1);
   assert(sizeof(int16_t) == 2);
   assert(sizeof(int32_t) == 4);
+
+#ifdef JNI
+  /*
+   * bring the JNI parameters into C parameters.
+   */
+
+  pipe(stdout_pipe);
+  pipe(stderr_pipe);
+
+  dup2(stdout_pipe[1], 1);
+  dup2(stderr_pipe[1], 2);
+
+  jni_args_len = (*env)->GetArrayLength(env, args);
+  argc = jni_args_len + 1;
+  argv = (char**)calloc(argc,sizeof(char*));
+  argv[0] = "./olsrd";
+  for (i = 0; i<jni_args_len; i++) {
+    const char *jargvv = NULL;
+    jstring jargv;
+
+    jargv = (jstring)(*env)->GetObjectArrayElement(env,args,i);
+    argv[i+1]=(char*)calloc((*env)->GetStringLength(env,jargv)+1,sizeof(char));
+    strcpy(argv[i+1], jargvv = (*env)->GetStringUTFChars(env,jargv,NULL));
+ 
+    (*env)->ReleaseStringUTFChars(env, jargv, jargvv);
+  }
+
+
+  FileInputStreamClass = (*env)->FindClass(env, "java/io/FileInputStream");
+  FileDescriptorClass = (*env)->FindClass(env, "java/io/FileDescriptor");
+  OlsrdClass = (*env)->FindClass(env, "net/commotionwireless/olsrd/Olsrd");
+
+  FileInputStream_init = (*env)->GetMethodID(env, FileInputStreamClass, "<init>", "(Ljava/io/FileDescriptor;)V");
+
+  FileDescriptor_init = (*env)->GetMethodID(env, FileDescriptorClass, "<init>", "()V");
+  FileDescriptor_field_fd = (*env)->GetFieldID(env, FileDescriptorClass, "descriptor", "I");
+
+  Olsrd_field_errorstream = (*env)->GetFieldID(env, OlsrdClass, "mErrorStream", "Ljava/io/InputStream;");
+  Olsrd_field_inputstream = (*env)->GetFieldID(env, OlsrdClass, "mInputStream", "Ljava/io/InputStream;");
+  Olsrd_field_locker = (*env)->GetFieldID(env, OlsrdClass, "mLocker", "Ljava/lang/Object;");
+  Olsrd_field_streamsavailable = (*env)->GetFieldID(env, OlsrdClass, "mStreamsAvailable", "Z");
+  Olsrd_method_notify = (*env)->GetMethodID(env, OlsrdClass, "notify", "()V");
+
+  stdout_file_descriptor = (*env)->NewObject(env, FileDescriptorClass, FileDescriptor_init);
+  stderr_file_descriptor = (*env)->NewObject(env, FileDescriptorClass, FileDescriptor_init);
+
+  (*env)->SetIntField(env, stdout_file_descriptor, FileDescriptor_field_fd, stdout_pipe[0]);
+  (*env)->SetIntField(env, stderr_file_descriptor, FileDescriptor_field_fd, stderr_pipe[0]);
+
+  stderr_file_stream = (*env)->NewObject(env, FileInputStreamClass, FileInputStream_init, stderr_file_descriptor);
+  stdout_file_stream = (*env)->NewObject(env, FileInputStreamClass, FileInputStream_init, stdout_file_descriptor);
+
+  (*env)->SetObjectField(env, this, Olsrd_field_errorstream, stderr_file_stream);
+  (*env)->SetObjectField(env, this, Olsrd_field_inputstream, stdout_file_stream);
+
+
+  /*
+   * Monitor Enter.
+   */
+  Olsrd_object_locker = (*env)->GetObjectField(env, this, Olsrd_field_locker);
+  (*env)->MonitorEnter(env, Olsrd_object_locker);
+
+  (*env)->SetBooleanField(env, this, Olsrd_field_streamsavailable, JNI_TRUE);
+  (*env)->CallVoidMethod(env, Olsrd_object_locker, Olsrd_method_notify);
+
+  (*env)->MonitorExit(env, Olsrd_object_locker);
+  /*
+   * Monitor Exit.
+   */
+#endif
 
   printf("\n *** %s ***\n Build date: %s on %s\n http://www.olsr.org\n\n",
       olsrd_version, build_date, build_host);
