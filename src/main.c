@@ -394,7 +394,7 @@ int main(int argc, char *argv[]) {
   Olsrd_field_inputstream = (*env)->GetFieldID(env, OlsrdClass, "mInputStream", "Ljava/io/InputStream;");
   Olsrd_field_locker = (*env)->GetFieldID(env, OlsrdClass, "mLocker", "Ljava/lang/Object;");
   Olsrd_field_streamsavailable = (*env)->GetFieldID(env, OlsrdClass, "mStreamsAvailable", "Z");
-  Olsrd_method_notify = (*env)->GetMethodID(env, OlsrdClass, "notify", "()V");
+  Olsrd_method_notify = (*env)->GetMethodID(env, OlsrdClass, "notifyAll", "()V");
 
   stdout_file_descriptor = (*env)->NewObject(env, FileDescriptorClass, FileDescriptor_init);
   stderr_file_descriptor = (*env)->NewObject(env, FileDescriptorClass, FileDescriptor_init);
