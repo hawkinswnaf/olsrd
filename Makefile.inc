@@ -66,6 +66,8 @@ SHAREDIR ?= $(USRDIR)/share
 DOCDIR   ?= $(SHAREDIR)/doc
 MANDIR   ?= $(SHAREDIR)/man
 EXENAME  ?= olsrd
+LIBNAME  ?= libolsrd.so
+LIBJNINAME  ?= libjniolsrd.so
 CFGNAME  ?= $(EXENAME).conf
 CFGFILE  ?= $(ETCDIR)/$(CFGNAME)
 
@@ -166,6 +168,7 @@ endif
 LDFLAGS +=	-shared
 LDFLAGS +=	-Wl,-soname,$(PLUGIN_SONAME)
 LDFLAGS +=	-Wl,--version-script=version-script.txt 
+LDFLAGS +=      -L$(TOPDIR) -lolsrd
 else
 # c and ld flags for main
 ifeq ($(OS),win32)

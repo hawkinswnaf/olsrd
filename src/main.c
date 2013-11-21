@@ -313,7 +313,7 @@ static void initRandom(void) {
  */
 
 #ifdef JNI
-JNIEXPORT jint JNICALL Java_net_commotionwireless_olsrd_Olsrd_main(JNIEnv *env, jobject this, jobjectArray args) {
+int jni_main(JNIEnv *env, jobject this, jobjectArray args) {
   int argc = 0;
   char **argv = NULL;
   int stdout_pipe[2], stderr_pipe[2];

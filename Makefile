@@ -71,6 +71,11 @@ endif
 cfgparser:	$(CFGDEPS) src/builddata.o
 		$(MAKECMDPREFIX)$(MAKECMD) -C $(CFGDIR)
 
+$(LIBJNINAME):	src/jni.o
+		$(MAKECMDPREFIX)$(CC) -shared $(LDFLAGS) -o $@ $^
+
+$(LIBNAME):	$(OBJS) src/builddata.o
+		$(MAKECMDPREFIX)$(CC) -shared $(LDFLAGS) -o $@ $^ $(LIBS)
 switch:		
 	$(MAKECMDPREFIX)$(MAKECMD) -C $(SWITCHDIR)
 
