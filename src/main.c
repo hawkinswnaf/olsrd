@@ -390,10 +390,10 @@ int main(int argc, char *argv[]) {
   FileDescriptor_init = (*env)->GetMethodID(env, FileDescriptorClass, "<init>", "()V");
   FileDescriptor_field_fd = (*env)->GetFieldID(env, FileDescriptorClass, "descriptor", "I");
 
-  Olsrd_field_errorstream = (*env)->GetFieldID(env, OlsrdClass, "mErrorStream", "Ljava/io/InputStream;");
-  Olsrd_field_inputstream = (*env)->GetFieldID(env, OlsrdClass, "mInputStream", "Ljava/io/InputStream;");
-  Olsrd_field_locker = (*env)->GetFieldID(env, OlsrdClass, "mLocker", "Ljava/lang/Object;");
-  Olsrd_field_streamsavailable = (*env)->GetFieldID(env, OlsrdClass, "mStreamsAvailable", "Z");
+  Olsrd_field_errorstream = (*env)->GetFieldID(env, OlsrdClass, "errorStream", "Ljava/io/InputStream;");
+  Olsrd_field_inputstream = (*env)->GetFieldID(env, OlsrdClass, "inputStream", "Ljava/io/InputStream;");
+  Olsrd_field_locker = (*env)->GetFieldID(env, OlsrdClass, "streamsLocker", "Ljava/lang/Object;");
+  Olsrd_field_streamsavailable = (*env)->GetFieldID(env, OlsrdClass, "streamsAvailable", "Z");
   Olsrd_method_notify = (*env)->GetMethodID(env, OlsrdClass, "notifyAll", "()V");
 
   stdout_file_descriptor = (*env)->NewObject(env, FileDescriptorClass, FileDescriptor_init);
