@@ -49,6 +49,10 @@
 
 #include <time.h>
 
+#ifdef JNI
+#include <jni.h>
+#endif
+
 /* Some defs for juggling with timers */
 #define MSEC_PER_SEC 1000
 #define USEC_PER_SEC 1000000
@@ -104,7 +108,11 @@ const char *olsr_clock_string(uint32_t);
 const char *olsr_wallclock_string(void);
 
 /* Main scheduler loop */
+#ifdef JNI
+void olsr_scheduler(JNIEnv *, jobject );
+#else
 void olsr_scheduler(void);
+#endif
 
 /*
  * Provides a timestamp s1 milliseconds in the future

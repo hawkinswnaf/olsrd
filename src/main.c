@@ -803,7 +803,11 @@ int main(int argc, char *argv[]) {
   link_changes = false;
 
   /* Starting scheduler */
+#ifdef JNI
+  olsr_scheduler(env, this);
+#else
   olsr_scheduler();
+#endif
 
   /* Like we're ever going to reach this ;-) */
   return 1;

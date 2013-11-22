@@ -52,6 +52,10 @@
 #include <unistd.h>
 #include <assert.h>
 
+#ifdef JNI
+#include <jni.h>
+#endif
+
 #ifdef _WIN32
 #define close(x) closesocket(x)
 #endif /* _WIN32 */
@@ -460,15 +464,32 @@ handle_fds(uint32_t next_interval)
  *
  * @return nada
  */
+#ifdef JNI
+void olsr_scheduler(JNIEnv *env, jobject this) {
+  jmethodID Thread_method_isInterrupted;
+  jmethodID Thread_method_currentThread;
+  jclass ThreadClass;
+  jobject Thread_current_thread;
+  jboolean Thread_interrupted;
+
+  ThreadClass = (*env)->FindClass(env, "java/lang/Thread");
+  Thread_method_isInterrupted = (*env)->GetMethodID(env, ThreadClass, "isInterrupted", "()Z");
+  Thread_method_currentThread = (*env)->GetStaticMethodID(env, ThreadClass, "currentThread", "()Ljava/lang/Thread;");
+  Thread_current_thread = (*env)->CallStaticObjectMethod(env, ThreadClass, Thread_method_currentThread);
+#else
 void __attribute__ ((noreturn))
-olsr_scheduler(void)
-{
+olsr_scheduler(void) {
+#endif
   OLSR_PRINTF(1, "Scheduler started - polling every %f ms\n", (double)olsr_cnf->pollrate);
 
   /* Main scheduler loop */
   while (true) {
     uint32_t next_interval;
 
+#ifdef JNI
+    Thread_interrupted = (*env)->CallBooleanMethod(env, Thread_current_thread, Thread_method_isInterrupted);
+    if (Thread_interrupted) break;
+#endif
     /*
      * Update the global timestamp. We are using a non-wallclock timer here
      * to avoid any undesired side effects if the system clock changes.
