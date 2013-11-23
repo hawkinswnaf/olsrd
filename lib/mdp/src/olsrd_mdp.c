@@ -221,7 +221,6 @@ plugin_ipc_init(void)
 void
 mdp_plugin_exit(void)
 {
-  olsr_preprocessor_remove_function(&secure_preprocessor);
 }
 
 static char *

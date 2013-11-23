@@ -84,7 +84,11 @@ void DisableIcmpRedirects(void);
 bool olsr_win32_end_request = false;
 bool olsr_win32_end_flag = false;
 #else /* _WIN32 */
+#ifdef JNI
+static void olsr_shutdown(int);
+#else
 static void olsr_shutdown(int) __attribute__ ((noreturn));
+#endif
 #endif /* _WIN32 */
 
 #if defined __ANDROID__
@@ -805,6 +809,7 @@ int main(int argc, char *argv[]) {
   /* Starting scheduler */
 #ifdef JNI
   olsr_scheduler(env, this);
+  olsr_shutdown(0);
 #else
   olsr_scheduler();
 #endif
@@ -1003,7 +1008,9 @@ static void olsr_shutdown(int signo __attribute__ ((unused)))
   exit_value = olsr_cnf->exit_value;
   olsrd_free_cnf(olsr_cnf);
 
+#ifndef JNI
   exit(exit_value);
+#endif
 }
 
 /**

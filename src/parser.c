@@ -89,6 +89,10 @@ olsr_init_parser(void)
 {
   OLSR_PRINTF(3, "Initializing parser...\n");
 
+  parse_functions = NULL;
+  preprocessor_functions = NULL;
+  packetparser_functions = NULL;
+
   /* Initialize the packet functions */
   olsr_init_package_process();
 
